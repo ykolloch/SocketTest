@@ -17,6 +17,7 @@ public class Server extends AsyncTask<Void, Void, String> {
 
     private ServerSocket serverSocket;
     private MainActivity mainActivity;
+    private String nmea_string = "";
 
     public Server(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -28,15 +29,24 @@ public class Server extends AsyncTask<Void, Void, String> {
 
         try {
             serverSocket = new ServerSocket(8288);
-            mainActivity.openServerSocket(true);
+            Log.v("Server", "ServerSocket offen");
+            //mainActivity.openServerSocket(true);
             Socket socket = serverSocket.accept();
-            mainActivity.acceptClient(true);
+            Log.v("Server", "Client accepted");
+            //mainActivity.acceptClient(true);
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
 
             while (true) {
-                String s = dataInputStream.readUTF();
-                Log.v("Server: ", s);
-                mainActivity.getData(true);
+                byte[] b = new byte[1];
+                dataInputStream.read(b);
+                String cha = new String(b);
+                if(cha.equals("$")) {
+                    Log.v("Server", nmea_string);
+                    nmea_string = "";
+                } else {
+                    if(!cha.equals("\n"))
+                        nmea_string = nmea_string.concat(cha);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
